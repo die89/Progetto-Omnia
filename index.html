@@ -3,110 +3,185 @@
 <head>
   <meta charset="UTF-8" />
   <title>Progetto Omnia – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #0b1120;
+      --accent: #facc15;   /* giallo Claypaky-ish */
+      --accent-soft: #facc1533;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border: #1f2937;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1d2538 0, #020617 55%, #000 100%);
-      color: #e5e7eb;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 16px;
     }
     .card {
-      background: #020617;
-      border-radius: 18px;
-      padding: 22px 24px 20px;
-      border: 1px solid #1f2937;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      max-width: 420px;
+      background: rgba(2, 6, 23, 0.96);
+      border-radius: 20px;
+      padding: 22px 20px 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.75);
+      max-width: 460px;
       width: 100%;
     }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .logo-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #000;
+      background: radial-gradient(circle at top, #facc15, #f97316);
+      box-shadow: 0 0 20px var(--accent-soft);
+    }
     h1 {
-      margin: 0 0 4px 0;
+      margin: 0;
       font-size: 22px;
+      letter-spacing: 0.03em;
     }
     .subtitle {
-      margin: 0 0 18px 0;
+      margin: 0;
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--text-muted);
     }
     .section-title {
       font-size: 13px;
       text-transform: uppercase;
       letter-spacing: .08em;
       color: #6b7280;
-      margin-bottom: 6px;
+      margin: 14px 0 6px;
     }
     .btn-group {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     a.btn {
       text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      gap: 10px;
+      padding: 11px 14px;
       border-radius: 999px;
       font-size: 14px;
       font-weight: 600;
       border: 1px solid transparent;
       transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+      color: inherit;
     }
     a.btn-main {
-      background: #22c55e;
-      color: #022c22;
-      box-shadow: 0 10px 22px rgba(34,197,94,0.45);
+      background: var(--accent);
+      color: #111827;
+      box-shadow: 0 12px 26px rgba(250, 204, 21, 0.55);
     }
     a.btn-main:hover {
-      background: #16a34a;
+      background: #eab308;
       transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(34,197,94,0.55);
+      box-shadow: 0 15px 32px rgba(250, 204, 21, 0.7);
     }
     a.btn-secondary {
-      background: #0f172a;
-      color: #e5e7eb;
-      border-color: #1f2937;
+      background: var(--bg-soft);
+      color: var(--text-main);
+      border-color: var(--border);
     }
     a.btn-secondary:hover {
       background: #020617;
-      border-color: #38bdf8;
+      border-color: var(--accent-soft);
       transform: translateY(-1px);
-      box-shadow: 0 8px 18px rgba(56,189,248,0.35);
+      box-shadow: 0 10px 25px rgba(15,23,42,0.9);
+    }
+    .btn-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .btn-label small {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    .btn-icon {
+      font-size: 18px;
     }
     .hint {
       font-size: 11px;
-      color: #6b7280;
+      color: var(--text-muted);
       margin-top: 6px;
+    }
+    @media (max-width: 480px) {
+      .card {
+        padding: 18px 16px 16px;
+        border-radius: 16px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      .logo-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Progetto Omnia</h1>
-    <p class="subtitle">Dashboard ufficiale</p>
+    <header>
+      <div class="logo-circle">O</div>
+      <div>
+        <h1>Progetto Omnia</h1>
+        <p class="subtitle">Sistema di deumidificazione e rigenerazione silica gel · Arduino UNO R4 WiFi · ThingSpeak</p>
+      </div>
+    </header>
 
     <p class="section-title">Pagine disponibili</p>
 
     <div class="btn-group">
-
-      <!-- 🔥 LINK CORRETTO ALLA DASHBOARD -->
       <a class="btn btn-main" href="dashboard.html">
-        <span>Dashboard completa sensori + pompa</span>
-        <span>📊</span>
+        <span class="btn-label">
+          <span>Dashboard completa</span>
+          <small>Stato pompa, sensori testa/base, grafico live</small>
+        </span>
+        <span class="btn-icon">📊</span>
       </a>
 
       <a class="btn btn-secondary" href="relay_control.html">
-        <span>Controllo pompa semplice</span>
-        <span>🟢🔴</span>
+        <span class="btn-label">
+          <span>Controllo pompa semplice</span>
+          <small>Solo pulsanti ON / OFF via ThingSpeak</small>
+        </span>
+        <span class="btn-icon">🟢🔴</span>
       </a>
     </div>
 
-    <p class="hint">Puoi aggiungere questa pagina ai preferiti.</p>
+    <p class="hint">
+      Suggerimento: aggiungi questa pagina ai preferiti sul browser (PC o smartphone) per avere sempre a portata di mano i controlli.
+    </p>
   </div>
 </body>
 </html>
