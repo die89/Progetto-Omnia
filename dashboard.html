@@ -4,20 +4,17 @@
   <meta charset="UTF-8" />
   <title>Progetto Omnia – Dashboard sensori & pompa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Chart.js per il grafico -->
+  <!-- Chart.js per i grafici -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #020617;
       --bg-soft: #020617;
-      --bg-panel: #020617;
       --border: #1f2937;
       --accent: #facc15;
       --accent-soft: #facc1533;
       --text-main: #e5e7eb;
       --text-muted: #9ca3af;
-      --danger: #f97373;
-      --success: #4ade80;
     }
     * { box-sizing: border-box; }
     body {
@@ -46,18 +43,12 @@
       align-items: center;
       gap: 10px;
     }
-    .logo-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 15px;
-      color: #000;
-      background: radial-gradient(circle at top, #facc15, #f97316);
+    .logo-img {
+      height: 36px;
+      width: auto;
+      border-radius: 6px;
+      background: #000;
+      padding: 4px;
       box-shadow: 0 0 16px var(--accent-soft);
     }
     header h1 {
@@ -100,11 +91,11 @@
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 14px;
       padding: 12px 14px 16px;
     }
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
       main {
         grid-template-columns: 1fr;
       }
@@ -249,15 +240,25 @@
       padding: 4px 0 8px;
     }
 
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 1100px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     canvas {
-      max-height: 260px;
+      max-height: 230px;
     }
   </style>
 </head>
 <body>
 <header>
   <div class="logo">
-    <div class="logo-circle">O</div>
+    <img src="claypaky.png" class="logo-img" alt="Claypaky logo" />
     <div>
       <h1>Progetto Omnia – Dashboard</h1>
       <p class="subtitle">Arduino UNO R4 WiFi · ThingSpeak canale 2862116</p>
@@ -333,14 +334,26 @@
     <div id="log"></div>
   </section>
 
-  <!-- Colonna destra: grafico -->
+  <!-- Colonna destra: 3 grafici -->
   <section class="panel">
-    <h2><span class="icon">📈</span> Temperature ultime letture</h2>
-    <div class="muted">
-      Grafico delle ultime 50 letture da ThingSpeak (field3 = T testa, field6 = T base).
+    <h2><span class="icon">📈</span> Andamento sensori (ultime 50 letture)</h2>
+    <div class="muted" style="margin-bottom:8px;">
+      Temperature, umidità e pressione per testa e base, letti da ThingSpeak (feeds.json).
     </div>
-    <div style="margin-top:6px;">
-      <canvas id="tempChart"></canvas>
+
+    <div class="charts-grid">
+      <div>
+        <div class="muted">Temperature [°C]</div>
+        <canvas id="tempChart"></canvas>
+      </div>
+      <div>
+        <div class="muted">Umidità relativa [%]</div>
+        <canvas id="humChart"></canvas>
+      </div>
+      <div>
+        <div class="muted">Pressione [hPa]</div>
+        <canvas id="pressChart"></canvas>
+      </div>
     </div>
   </section>
 </main>
@@ -378,12 +391,37 @@
   let awaitingConfirm = false;
   let lastCommandTime = 0;
 
-  // === GRAFICO Chart.js ===
+  // === GRAFICI Chart.js ===
   let tempChart = null;
+  let humChart  = null;
+  let pressChart = null;
 
-  function initChart() {
-    const ctx = document.getElementById("tempChart").getContext("2d");
-    tempChart = new Chart(ctx, {
+  function initCharts() {
+    const tempCtx  = document.getElementById("tempChart").getContext("2d");
+    const humCtx   = document.getElementById("humChart").getContext("2d");
+    const pressCtx = document.getElementById("pressChart").getContext("2d");
+
+    const baseOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+          grid: { display: false }
+        },
+        y: {
+          ticks: { color: "#9ca3af" },
+          grid: { color: "#1f2937" }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#e5e7eb", font: { size: 11 } }
+        }
+      }
+    };
+
+    tempChart = new Chart(tempCtx, {
       type: "line",
       data: {
         labels: [],
@@ -408,25 +446,63 @@
           }
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
-            grid: { display: false }
+      options: baseOptions
+    });
+
+    humChart = new Chart(humCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "UR Testa [%]",
+            data: [],
+            borderColor: "rgba(52, 211, 153, 1)",
+            backgroundColor: "rgba(52, 211, 153, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
           },
-          y: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "#1f2937" }
+          {
+            label: "UR Base [%]",
+            data: [],
+            borderColor: "rgba(248, 113, 113, 1)",
+            backgroundColor: "rgba(248, 113, 113, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
           }
-        },
-        plugins: {
-          legend: {
-            labels: { color: "#e5e7eb", font: { size: 11 } }
+        ]
+      },
+      options: baseOptions
+    });
+
+    pressChart = new Chart(pressCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "P Testa [hPa]",
+            data: [],
+            borderColor: "rgba(96, 165, 250, 1)",
+            backgroundColor: "rgba(96, 165, 250, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          },
+          {
+            label: "P Base [hPa]",
+            data: [],
+            borderColor: "rgba(251, 191, 36, 1)",
+            backgroundColor: "rgba(251, 191, 36, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
           }
-        }
-      }
+        ]
+      },
+      options: baseOptions
     });
   }
 
@@ -508,7 +584,7 @@
       });
   }
 
-  // === LETTURA COMPLETA ULTIMO CAMPIONE + AGGIORNAMENTO UI ===
+  // === LETTURA COMPLETA ULTIMI CAMPIONI + AGGIORNAMENTO UI/GRAFICI ===
   function refreshAll() {
     const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=50`;
 
@@ -568,22 +644,43 @@
         lastSync.textContent = "Ultimo aggiornamento: " + new Date().toLocaleTimeString();
         setButtonsEnabled(true);
 
-        // === Aggiorna il grafico con T testa/base su tutti i sample ===
+        // === Aggiorna i grafici con tutte le letture ===
         const labels = [];
         const tTestaArray = [];
         const tBaseArray  = [];
+        const hTestaArray = [];
+        const hBaseArray  = [];
+        const pTestaArray = [];
+        const pBaseArray  = [];
 
         json.feeds.forEach(feed => {
           const ts = new Date(feed.created_at);
           labels.push(ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+
           tTestaArray.push(feed.field3 ? parseFloat(feed.field3) : null);
           tBaseArray.push(feed.field6 ? parseFloat(feed.field6) : null);
+
+          hTestaArray.push(feed.field4 ? parseFloat(feed.field4) : null);
+          hBaseArray.push(feed.field7 ? parseFloat(feed.field7) : null);
+
+          pTestaArray.push(feed.field5 ? parseFloat(feed.field5) : null);
+          pBaseArray.push(feed.field8 ? parseFloat(feed.field8) : null);
         });
 
         tempChart.data.labels = labels;
         tempChart.data.datasets[0].data = tTestaArray;
         tempChart.data.datasets[1].data = tBaseArray;
         tempChart.update();
+
+        humChart.data.labels = labels;
+        humChart.data.datasets[0].data = hTestaArray;
+        humChart.data.datasets[1].data = hBaseArray;
+        humChart.update();
+
+        pressChart.data.labels = labels;
+        pressChart.data.datasets[0].data = pTestaArray;
+        pressChart.data.datasets[1].data = pBaseArray;
+        pressChart.update();
       })
       .catch(err => {
         log("Errore lettura dati da ThingSpeak: " + err, "err");
@@ -591,7 +688,7 @@
   }
 
   // === AVVIO ===
-  initChart();
+  initCharts();
   log("Dashboard avviata. Lettura iniziale dati…", "ok");
   refreshAll();
   setInterval(refreshAll, POLL_INTERVAL_MS);
