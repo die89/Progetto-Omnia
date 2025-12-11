@@ -43,20 +43,17 @@
       gap: 12px;
       margin-bottom: 14px;
     }
-    .logo-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
-      color: #000;
-      background: radial-gradient(circle at top, #facc15, #f97316);
-      box-shadow: 0 0 20px var(--accent-soft);
+
+    /* LOGO CLAYPAKY */
+    .logo-img {
+      height: 42px;
+      width: auto;
+      border-radius: 6px;
+      background: #000;
+      padding: 4px;
+      box-shadow: 0 0 16px var(--accent-soft);
     }
+
     h1 {
       margin: 0;
       font-size: 22px;
@@ -141,10 +138,8 @@
       h1 {
         font-size: 20px;
       }
-      .logo-circle {
-        width: 36px;
+      .logo-img {
         height: 36px;
-        font-size: 16px;
       }
     }
   </style>
@@ -152,7 +147,9 @@
 <body>
   <div class="card">
     <header>
-      <div class="logo-circle">O</div>
+      <!-- LOGO AL POSTO DEL CERCHIO -->
+      <img src="claypaky.png" class="logo-img" alt="Claypaky logo" />
+
       <div>
         <h1>Progetto Omnia</h1>
         <p class="subtitle">Sistema di deumidificazione e rigenerazione silica gel · Arduino UNO R4 WiFi · ThingSpeak</p>
@@ -173,14 +170,14 @@
       <a class="btn btn-secondary" href="relay_control.html">
         <span class="btn-label">
           <span>Controllo pompa semplice</span>
-          <small>Solo pulsanti ON / OFF via ThingSpeak</small>
+          <small>Pulsanti ON/OFF via ThingSpeak</small>
         </span>
         <span class="btn-icon">🟢🔴</span>
       </a>
     </div>
 
     <p class="hint">
-      Suggerimento: aggiungi questa pagina ai preferiti sul browser (PC o smartphone) per avere sempre a portata di mano i controlli.
+      Suggerimento: aggiungi questa pagina ai preferiti per avere sempre accesso rapido al sistema.
     </p>
   </div>
 </body>
