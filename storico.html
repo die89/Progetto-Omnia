@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Progetto Omnia – Storico giornaliero</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --border: #1f2937;
+      --accent: #facc15;
+      --accent-soft: #facc1533;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.97);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-img {
+      height: 32px;
+      width: auto;
+      border-radius: 6px;
+      background: #000;
+      padding: 4px;
+      box-shadow: 0 0 16px var(--accent-soft);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    header .subtitle {
+      margin: 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    a.home-link {
+      font-size: 12px;
+      text-decoration: none;
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(15,23,42,0.9);
+    }
+    a.home-link:hover {
+      background: rgba(250,204,21,0.1);
+    }
+    main {
+      flex: 1;
+      padding: 12px 14px 16px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: rgba(2, 6, 23, 0.96);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 14px 14px 12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.65);
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel h2 span.icon {
+      font-size: 17px;
+    }
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+    input[type="date"] {
+      background: #020617;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      width: 100%;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.08s ease;
+      margin-top: 8px;
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #111827;
+      box-shadow: 0 6px 17px rgba(250, 204, 21, 0.45);
+    }
+    .btn-primary:hover {
+      background: #eab308;
+    }
+    .muted {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+    #info-giorno {
+      font-size: 12px;
+      margin-top: 8px;
+      color: var(--text-main);
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    canvas {
+      max-height: 230px;
+    }
+    footer {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 4px 0 8px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <img src="claypaky.png" class="logo-img" alt="Claypaky logo" />
+    <div>
+      <h1>Storico giornaliero</h1>
+      <p class="subtitle">Grafici 24h da ThingSpeak – Progetto Omnia</p>
+    </div>
+  </div>
+  <a class="home-link" href="index.html">← Home</a>
+</header>
+
+<main>
+  <!-- Pannello controllo giorno -->
+  <section class="panel">
+    <h2><span class="icon">📆</span> Seleziona giorno</h2>
+    <label for="giorno">Giorno (24 ore dalle 00:00 alle 23:59):</label>
+    <input type="date" id="giorno" />
+    <button class="btn-primary" onclick="caricaGiorno()">
+      ⟳ Carica grafici per questo giorno
+    </button>
+    <div id="info-giorno" class="muted">
+      Seleziona un giorno e premi il pulsante per vedere i grafici.
+    </div>
+    <div id="stato" class="muted"></div>
+  </section>
+
+  <!-- Pannello grafici -->
+  <section class="panel">
+    <h2><span class="icon">📈</span> Grafici 24 ore</h2>
+    <div class="muted">
+      Temperature, umidità e pressione per testa e base nel giorno selezionato.
+    </div>
+    <div class="charts-grid" style="margin-top:8px;">
+      <div>
+        <div class="muted">Temperatura [°C]</div>
+        <canvas id="tempChart"></canvas>
+      </div>
+      <div>
+        <div class="muted">Umidità relativa [%]</div>
+        <canvas id="humChart"></canvas>
+      </div>
+      <div>
+        <div class="muted">Pressione [hPa]</div>
+        <canvas id="pressChart"></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Dati da ThingSpeak (feeds.json) – 1 giorno per volta per restare entro i limiti del piano free.
+</footer>
+
+<script>
+  // === Configurazione ThingSpeak ===
+  const CHANNEL_ID   = 2862116;
+  const READ_API_KEY = "IZCUGF40MLOCNBG9";
+
+  // Riferimenti DOM
+  const giornoInput = document.getElementById("giorno");
+  const infoGiorno  = document.getElementById("info-giorno");
+  const statoDiv    = document.getElementById("stato");
+
+  // Inizializza il campo data con oggi
+  (function initToday() {
+    const oggi = new Date();
+    const yyyy = oggi.getFullYear();
+    const mm   = String(oggi.getMonth() + 1).padStart(2, "0");
+    const dd   = String(oggi.getDate()).padStart(2, "0");
+    giornoInput.value = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  // === Grafici Chart.js ===
+  let tempChart = null;
+  let humChart  = null;
+  let pressChart = null;
+
+  function initCharts() {
+    const tempCtx  = document.getElementById("tempChart").getContext("2d");
+    const humCtx   = document.getElementById("humChart").getContext("2d");
+    const pressCtx = document.getElementById("pressChart").getContext("2d");
+
+    const baseOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+          grid: { display: false }
+        },
+        y: {
+          ticks: { color: "#9ca3af" },
+          grid: { color: "#1f2937" }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#e5e7eb", font: { size: 11 } }
+        }
+      }
+    };
+
+    tempChart = new Chart(tempCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "T Testa [°C]",
+            data: [],
+            borderColor: "rgba(250, 204, 21, 1)",
+            backgroundColor: "rgba(250, 204, 21, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          },
+          {
+            label: "T Base [°C]",
+            data: [],
+            borderColor: "rgba(56, 189, 248, 1)",
+            backgroundColor: "rgba(56, 189, 248, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          }
+        ]
+      },
+      options: baseOptions
+    });
+
+    humChart = new Chart(humCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "UR Testa [%]",
+            data: [],
+            borderColor: "rgba(52, 211, 153, 1)",
+            backgroundColor: "rgba(52, 211, 153, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          },
+          {
+            label: "UR Base [%]",
+            data: [],
+            borderColor: "rgba(248, 113, 113, 1)",
+            backgroundColor: "rgba(248, 113, 113, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          }
+        ]
+      },
+      options: baseOptions
+    });
+
+    pressChart = new Chart(pressCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "P Testa [hPa]",
+            data: [],
+            borderColor: "rgba(96, 165, 250, 1)",
+            backgroundColor: "rgba(96, 165, 250, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          },
+          {
+            label: "P Base [hPa]",
+            data: [],
+            borderColor: "rgba(251, 191, 36, 1)",
+            backgroundColor: "rgba(251, 191, 36, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          }
+        ]
+      },
+      options: baseOptions
+    });
+  }
+
+  // Carica dati per il giorno selezionato
+  function caricaGiorno() {
+    const val = giornoInput.value;
+    if (!val) {
+      statoDiv.textContent = "Seleziona prima una data.";
+      return;
+    }
+
+    const [yyyy, mm, dd] = val.split("-");
+    // Intervallo 00:00–23:59 del giorno selezionato in formato UTC ISO per ThingSpeak
+    const start = new Date(`${val}T00:00:00Z`);
+    const end   = new Date(`${val}T23:59:59Z`);
+
+    const startISO = start.toISOString();
+    const endISO   = end.toISOString();
+
+    infoGiorno.textContent = `Giorno selezionato: ${dd}/${mm}/${yyyy}`;
+    statoDiv.textContent = "Caricamento dati da ThingSpeak...";
+
+    const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&start=${encodeURIComponent(startISO)}&end=${encodeURIComponent(endISO)}`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(json => {
+        if (!json.feeds || json.feeds.length === 0) {
+          statoDiv.textContent = "Nessun dato disponibile per questo giorno.";
+          aggiornaGrafici([], [], [], [], [], [], []);
+          return;
+        }
+
+        const labels = [];
+        const tTestaArray = [];
+        const tBaseArray  = [];
+        const hTestaArray = [];
+        const hBaseArray  = [];
+        const pTestaArray = [];
+        const pBaseArray  = [];
+
+        json.feeds.forEach(feed => {
+          const ts = new Date(feed.created_at);
+          labels.push(
+            ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          );
+
+          tTestaArray.push(feed.field3 ? parseFloat(feed.field3) : null);
+          hTestaArray.push(feed.field4 ? parseFloat(feed.field4) : null);
+          pTestaArray.push(feed.field5 ? parseFloat(feed.field5) : null);
+
+          tBaseArray.push(feed.field6 ? parseFloat(feed.field6) : null);
+          hBaseArray.push(feed.field7 ? parseFloat(feed.field7) : null);
+          pBaseArray.push(feed.field8 ? parseFloat(feed.field8) : null);
+        });
+
+        aggiornaGrafici(labels, tTestaArray, tBaseArray, hTestaArray, hBaseArray, pTestaArray, pBaseArray);
+        statoDiv.textContent = `Dati caricati: ${json.feeds.length} campioni trovati.`;
+      })
+      .catch(err => {
+        console.error(err);
+        statoDiv.textContent = "Errore nel caricamento dati da ThingSpeak.";
+      });
+  }
+
+  function aggiornaGrafici(labels, tTesta, tBase, hTesta, hBase, pTesta, pBase) {
+    tempChart.data.labels = labels;
+    tempChart.data.datasets[0].data = tTesta;
+    tempChart.data.datasets[1].data = tBase;
+    tempChart.update();
+
+    humChart.data.labels = labels;
+    humChart.data.datasets[0].data = hTesta;
+    humChart.data.datasets[1].data = hBase;
+    humChart.update();
+
+    pressChart.data.labels = labels;
+    pressChart.data.datasets[0].data = pTesta;
+    pressChart.data.datasets[1].data = pBase;
+    pressChart.update();
+  }
+
+  // Avvio
+  initCharts();
+  // Carica di default il giorno di oggi
+  caricaGiorno();
+</script>
+</body>
+</html>
