@@ -43,8 +43,6 @@
       gap: 12px;
       margin-bottom: 14px;
     }
-
-    /* LOGO CLAYPAKY */
     .logo-img {
       height: 42px;
       width: auto;
@@ -53,7 +51,6 @@
       padding: 4px;
       box-shadow: 0 0 16px var(--accent-soft);
     }
-
     h1 {
       margin: 0;
       font-size: 22px;
@@ -147,9 +144,7 @@
 <body>
   <div class="card">
     <header>
-      <!-- LOGO AL POSTO DEL CERCHIO -->
       <img src="claypaky.png" class="logo-img" alt="Claypaky logo" />
-
       <div>
         <h1>Progetto Omnia</h1>
         <p class="subtitle">Sistema di deumidificazione e rigenerazione silica gel · Arduino UNO R4 WiFi · ThingSpeak</p>
@@ -162,17 +157,18 @@
       <a class="btn btn-main" href="dashboard.html">
         <span class="btn-label">
           <span>Dashboard completa</span>
-          <small>Stato pompa, sensori testa/base, grafico live</small>
+          <small>Stato pompa, sensori testa/base, grafici live</small>
         </span>
         <span class="btn-icon">📊</span>
       </a>
 
-      <a class="btn btn-secondary" href="relay_control.html">
+      <!-- PULSANTE NUOVO: storici giornalieri -->
+      <a class="btn btn-secondary" href="storico.html">
         <span class="btn-label">
-          <span>Controllo pompa semplice</span>
-          <small>Pulsanti ON/OFF via ThingSpeak</small>
+          <span>Storico per giorno</span>
+          <small>Grafici giornalieri dall’inizio della registrazione dati</small>
         </span>
-        <span class="btn-icon">🟢🔴</span>
+        <span class="btn-icon">📆</span>
       </a>
     </div>
 
