@@ -2,55 +2,133 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Progetto Omnia - Controllo Pompa & Sensori</title>
+  <title>Progetto Omnia – Dashboard sensori & pompa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js per il grafico -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #020617;
+      --bg-panel: #020617;
+      --border: #1f2937;
+      --accent: #facc15;
+      --accent-soft: #facc1533;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+    }
+    * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     header {
-      padding: 16px 24px;
-      background: #020617;
-      border-bottom: 1px solid #1f2937;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.97);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: #000;
+      background: radial-gradient(circle at top, #facc15, #f97316);
+      box-shadow: 0 0 16px var(--accent-soft);
     }
     header h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
     }
-    header span {
-      font-size: 12px;
-      color: #9ca3af;
+    header .subtitle {
+      margin: 0;
+      font-size: 11px;
+      color: var(--text-muted);
     }
-    main {
-      padding: 24px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .card {
-      background: #020617;
-      border-radius: 12px;
-      padding: 16px 18px;
-      border: 1px solid #1f2937;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
-    }
-    .card h2 {
-      font-size: 16px;
-      margin: 0 0 12px 0;
+    .top-actions {
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .chip {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    a.home-link {
+      font-size: 12px;
+      text-decoration: none;
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(15,23,42,0.9);
+    }
+    a.home-link:hover {
+      background: rgba(250,204,21,0.1);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+      padding: 12px 14px 16px;
+    }
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: rgba(2, 6, 23, 0.96);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 14px 14px 12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.65);
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel h2 span.icon {
+      font-size: 17px;
+    }
+    .muted {
+      font-size: 11px;
+      color: var(--text-muted);
     }
     .badge {
       display: inline-flex;
@@ -58,44 +136,43 @@
       justify-content: center;
       padding: 4px 10px;
       border-radius: 999px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
+      border: 1px solid transparent;
     }
     .badge-on {
-      background: #22c55e33;
+      background: rgba(74, 222, 128, 0.15);
+      border-color: #4ade80;
       color: #bbf7d0;
-      border: 1px solid #22c55e;
     }
     .badge-off {
-      background: #ef444433;
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #ef4444;
       color: #fecaca;
-      border: 1px solid #ef4444;
     }
     .badge-pending {
-      background: #f9731633;
+      background: rgba(249, 115, 22, 0.15);
+      border-color: #f97316;
       color: #fed7aa;
-      border: 1px solid #f97316;
     }
     .badge-error {
-      background: #e11d4833;
-      color: #fecdd3;
-      border: 1px solid #e11d48;
+      background: rgba(244, 63, 94, 0.15);
+      border-color: #f97373;
+      color: #fee2e2;
     }
-    .muted {
-      font-size: 12px;
-      color: #9ca3af;
-    }
+
     .btn-row {
       display: flex;
-      gap: 10px;
-      margin-top: 8px;
+      gap: 8px;
       flex-wrap: wrap;
+      margin-top: 6px;
+      margin-bottom: 6px;
     }
     button {
       border: none;
       border-radius: 999px;
-      padding: 9px 18px;
-      font-size: 14px;
+      padding: 8px 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -107,30 +184,31 @@
       transform: translateY(1px);
       box-shadow: none;
     }
-    .btn-on {
-      background: #22c55e;
-      color: #022c22;
-      box-shadow: 0 5px 14px rgba(34,197,94,0.35);
-    }
-    .btn-off {
-      background: #ef4444;
-      color: #450a0a;
-      box-shadow: 0 5px 14px rgba(239,68,68,0.35);
-    }
-    .btn-refresh {
-      background: #0ea5e9;
-      color: #02131c;
-      box-shadow: 0 5px 14px rgba(14,165,233,0.35);
-    }
     button[disabled] {
       opacity: 0.6;
       cursor: default;
       box-shadow: none;
     }
+    .btn-on {
+      background: #22c55e;
+      color: #022c22;
+      box-shadow: 0 6px 17px rgba(34,197,94,0.45);
+    }
+    .btn-off {
+      background: #ef4444;
+      color: #450a0a;
+      box-shadow: 0 6px 17px rgba(239,68,68,0.45);
+    }
+    .btn-refresh {
+      background: #0ea5e9;
+      color: #02131c;
+      box-shadow: 0 6px 17px rgba(14,165,233,0.45);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
       margin-top: 4px;
     }
     th, td {
@@ -138,9 +216,9 @@
       text-align: left;
     }
     th {
-      font-size: 12px;
-      color: #9ca3af;
-      border-bottom: 1px solid #1f2937;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
     }
     tr:nth-child(even) td {
       background: #020617;
@@ -148,119 +226,128 @@
     .val {
       font-variant-numeric: tabular-nums;
     }
+
     #log {
       font-size: 11px;
-      max-height: 140px;
+      max-height: 160px;
       overflow-y: auto;
       background: #020617;
       border-radius: 10px;
-      border: 1px solid #1f2937;
-      padding: 8px 10px;
+      border: 1px solid var(--border);
+      padding: 8px;
       white-space: pre-line;
     }
-    .log-line {
-      margin: 0;
-    }
-    .ok { color: #4ade80; }
-    .warn { color: #facc15; }
-    .err { color: #fb7185; }
+    .log-line { margin: 0 0 2px; }
+    .log-ok { color: #a7f3d0; }
+    .log-warn { color: #facc15; }
+    .log-err { color: #fecaca; }
+
     footer {
       text-align: center;
-      font-size: 11px;
-      color: #6b7280;
-      padding: 10px 0 20px;
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 4px 0 8px;
     }
-    a {
-      color: #38bdf8;
+
+    canvas {
+      max-height: 260px;
     }
   </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>Progetto Omnia – Dashboard Pompa & Sensori</h1>
-    <span>Arduino UNO R4 WiFi · ThingSpeak channel 2862116</span>
+  <div class="logo">
+    <div class="logo-circle">O</div>
+    <div>
+      <h1>Progetto Omnia – Dashboard</h1>
+      <p class="subtitle">Arduino UNO R4 WiFi · ThingSpeak canale 2862116</p>
+    </div>
   </div>
-  <div class="muted" id="last-sync">Ultimo aggiornamento: –</div>
+  <div class="top-actions">
+    <div class="chip" id="last-sync">Ultimo aggiornamento: –</div>
+    <a class="home-link" href="index.html">← Home</a>
+  </div>
 </header>
 
 <main>
-  <section class="grid">
-    <!-- Stato pompa + comandi -->
-    <div class="card">
-      <h2>Pompa / Relè</h2>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <div>
-          <span class="muted">Stato reale (field2): </span>
-          <span id="pump-status-badge" class="badge badge-off">Sconosciuto</span>
-        </div>
-
-        <div>
-          <span class="muted">Ultimo comando inviato (field1): </span>
-          <span id="command-status" class="badge badge-off">Nessuno</span>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn-on" id="btn-on" onclick="setPump(1)">
-            ▶ POMPA ON
-          </button>
-          <button class="btn-off" id="btn-off" onclick="setPump(0)">
-            ■ POMPA OFF
-          </button>
-          <button class="btn-refresh" onclick="refreshAll()">
-            ⟳ Aggiorna ora
-          </button>
-        </div>
-
-        <div class="muted" id="pump-note" style="margin-top:6px;">
-          In attesa dei dati da ThingSpeak…
-        </div>
-      </div>
+  <!-- Colonna sinistra: pompa + sensori + log -->
+  <section class="panel">
+    <h2><span class="icon">⚙️</span> Pompa / Relè</h2>
+    <div class="muted">
+      Stato reale da Arduino (field2) e comandi via ThingSpeak (field1).
     </div>
 
-    <!-- Sensori testa/base -->
-    <div class="card">
-      <h2>Sensori BME280 (Testa / Base)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Posizione</th>
-            <th>T [°C]</th>
-            <th>UR [%]</th>
-            <th>Press. [hPa]</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Testa (field3–5)</td>
-            <td class="val" id="t-testa">–</td>
-            <td class="val" id="h-testa">–</td>
-            <td class="val" id="p-testa">–</td>
-          </tr>
-          <tr>
-            <td>Base (field6–8)</td>
-            <td class="val" id="t-base">–</td>
-            <td class="val" id="h-base">–</td>
-            <td class="val" id="p-base">–</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="muted" id="sensors-note" style="margin-top:6px;">
-        Ultimo campione: –
-      </div>
+    <div style="margin-top:8px;">
+      <div class="muted">Stato reale pompa (field2):</div>
+      <div id="pump-status-badge" class="badge badge-error">Sconosciuto</div>
+    </div>
+    <div style="margin-top:6px;">
+      <div class="muted">Ultimo comando inviato (field1):</div>
+      <div id="command-status" class="badge badge-error">Nessuno</div>
     </div>
 
-    <!-- Log -->
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>Log / Diagnostica</h2>
-      <div id="log"></div>
+    <div class="btn-row">
+      <button id="btn-on" class="btn-on" onclick="setPump(1)">▶ POMPA ON</button>
+      <button id="btn-off" class="btn-off" onclick="setPump(0)">■ POMPA OFF</button>
+      <button class="btn-refresh" onclick="refreshAll()">⟳ Aggiorna</button>
     </div>
+
+    <div id="pump-note" class="muted" style="margin-top:4px;">
+      In attesa dei dati da ThingSpeak…
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--border); margin:12px 0 8px;" />
+
+    <h2><span class="icon">🌡️</span> Sensori BME280 (Testa / Base)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Posizione</th>
+          <th>T [°C]</th>
+          <th>UR [%]</th>
+          <th>Press. [hPa]</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Testa (field3–5)</td>
+          <td class="val" id="t-testa">–</td>
+          <td class="val" id="h-testa">–</td>
+          <td class="val" id="p-testa">–</td>
+        </tr>
+        <tr>
+          <td>Base (field6–8)</td>
+          <td class="val" id="t-base">–</td>
+          <td class="val" id="h-base">–</td>
+          <td class="val" id="p-base">–</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="sensors-note" class="muted" style="margin-top:4px;">
+      Ultimo campione: –
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--border); margin:12px 0 8px;" />
+
+    <h2><span class="icon">📟</span> Log / Diagnostica</h2>
+    <div id="log"></div>
   </section>
 
-  <footer>
-    Dati da ThingSpeak · lettura automatica ogni 10 s · ricorda che il piano free ha limiti di rate.
-  </footer>
+  <!-- Colonna destra: grafico -->
+  <section class="panel">
+    <h2><span class="icon">📈</span> Temperature ultime letture</h2>
+    <div class="muted">
+      Grafico delle ultime 50 letture da ThingSpeak (field3 = T testa, field6 = T base).
+    </div>
+    <div style="margin-top:6px;">
+      <canvas id="tempChart"></canvas>
+    </div>
+  </section>
 </main>
+
+<footer>
+  Dati letti da ThingSpeak via API JSON · aggiornamento automatico ogni 10 s · attenzione ai limiti di rate del piano free.
+</footer>
 
 <script>
   // === CONFIGURAZIONE THINGSPEAK ===
@@ -291,15 +378,68 @@
   let awaitingConfirm = false;
   let lastCommandTime = 0;
 
-  // === FUNZIONI DI UTILITÀ ===
-  function log(msg, level = "ok") {
-    const now = new Date().toLocaleTimeString();
-    const p = document.createElement("div");
-    p.className = `log-line ${level}`;
-    p.textContent = `[${now}] ${msg}`;
-    logDiv.prepend(p);
+  // === GRAFICO Chart.js ===
+  let tempChart = null;
+
+  function initChart() {
+    const ctx = document.getElementById("tempChart").getContext("2d");
+    tempChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "T Testa [°C]",
+            data: [],
+            borderColor: "rgba(250, 204, 21, 1)",
+            backgroundColor: "rgba(250, 204, 21, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          },
+          {
+            label: "T Base [°C]",
+            data: [],
+            borderColor: "rgba(56, 189, 248, 1)",
+            backgroundColor: "rgba(56, 189, 248, 0.15)",
+            borderWidth: 2,
+            pointRadius: 1.5,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+            grid: { display: false }
+          },
+          y: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "#1f2937" }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: "#e5e7eb", font: { size: 11 } }
+          }
+        }
+      }
+    });
   }
 
+  // === LOG ===
+  function log(msg, level = "ok") {
+    const now = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.className = `log-line log-${level}`;
+    div.textContent = `[${now}] ${msg}`;
+    logDiv.prepend(div);
+  }
+
+  // === UTILITÀ UI ===
   function setPumpBadge(state) {
     pumpBadge.className = "badge";
     if (state === 1) {
@@ -358,7 +498,6 @@
         } else {
           log(`Comando registrato su ThingSpeak, entryId=${id}`, "ok");
           pumpNote.textContent = "Comando registrato, in attesa che Arduino aggiorni lo stato…";
-          // fra poco la lettura automatica controllerà field2
         }
       })
       .catch(err => {
@@ -369,9 +508,9 @@
       });
   }
 
-  // === LETTURA COMPLETA ULTIMO CAMPIONE ===
+  // === LETTURA COMPLETA ULTIMO CAMPIONE + AGGIORNAMENTO UI ===
   function refreshAll() {
-    const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=1`;
+    const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=50`;
 
     fetch(url)
       .then(r => r.json())
@@ -381,21 +520,17 @@
           return;
         }
 
-        const feed = json.feeds[0];
-        const updated = new Date(feed.created_at);
+        // ultimo feed
+        const latest = json.feeds[json.feeds.length - 1];
+        const updated = new Date(latest.created_at);
 
         // Field1 = ultimo comando, Field2 = stato reale pompa
-        const f1 = feed.field1 !== null ? parseInt(feed.field1) : null;
-        const f2 = feed.field2 !== null ? parseInt(feed.field2) : null;
+        const f1 = latest.field1 !== null ? parseInt(latest.field1) : null;
+        const f2 = latest.field2 !== null ? parseInt(latest.field2) : null;
 
-        setCommandBadge(
-          f1 === 0 || f1 === 1 ? f1 : null
-        );
-        setPumpBadge(
-          f2 === 0 || f2 === 1 ? f2 : null
-        );
+        setCommandBadge((f1 === 0 || f1 === 1) ? f1 : null);
+        setPumpBadge((f2 === 0 || f2 === 1) ? f2 : null);
 
-        // Nota di stato pompa
         if (f2 === 1) {
           pumpNote.textContent = "Pompa segnalata ATTIVA da Arduino.";
         } else if (f2 === 0) {
@@ -404,7 +539,7 @@
           pumpNote.textContent = "Stato pompa non disponibile.";
         }
 
-        // Conferma comando (field1 vs field2)
+        // Conferma comando
         if (awaitingConfirm && (f2 === 0 || f2 === 1)) {
           if (f2 === lastCommand) {
             log("Comando confermato: stato pompa combacia con field1.", "ok");
@@ -417,9 +552,9 @@
           }
         }
 
-        // Sensori testa/base
-        const f3 = feed.field3, f4 = feed.field4, f5 = feed.field5;
-        const f6 = feed.field6, f7 = feed.field7, f8 = feed.field8;
+        // Sensori testa/base (dall’ultimo sample)
+        const f3 = latest.field3, f4 = latest.field4, f5 = latest.field5;
+        const f6 = latest.field6, f7 = latest.field7, f8 = latest.field8;
 
         tTestaSpan.textContent = f3 !== null ? parseFloat(f3).toFixed(2) : "–";
         hTestaSpan.textContent = f4 !== null ? parseFloat(f4).toFixed(2) : "–";
@@ -432,6 +567,23 @@
         sensorsNote.textContent = "Ultimo campione: " + updated.toLocaleString();
         lastSync.textContent = "Ultimo aggiornamento: " + new Date().toLocaleTimeString();
         setButtonsEnabled(true);
+
+        // === Aggiorna il grafico con T testa/base su tutti i sample ===
+        const labels = [];
+        const tTestaArray = [];
+        const tBaseArray  = [];
+
+        json.feeds.forEach(feed => {
+          const ts = new Date(feed.created_at);
+          labels.push(ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+          tTestaArray.push(feed.field3 ? parseFloat(feed.field3) : null);
+          tBaseArray.push(feed.field6 ? parseFloat(feed.field6) : null);
+        });
+
+        tempChart.data.labels = labels;
+        tempChart.data.datasets[0].data = tTestaArray;
+        tempChart.data.datasets[1].data = tBaseArray;
+        tempChart.update();
       })
       .catch(err => {
         log("Errore lettura dati da ThingSpeak: " + err, "err");
@@ -439,6 +591,7 @@
   }
 
   // === AVVIO ===
+  initChart();
   log("Dashboard avviata. Lettura iniziale dati…", "ok");
   refreshAll();
   setInterval(refreshAll, POLL_INTERVAL_MS);
